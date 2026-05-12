@@ -10,6 +10,9 @@ interface Props {
   onAdjust: (teamId: string, delta: number) => void;
 }
 
+// Compact landscape-friendly scoreboard. Single horizontal row of 4 cells.
+// Each cell shows team name + score + tiny +/- buttons for manual host
+// corrections (escape hatch — primary scoring happens on the question screen).
 export default function Scoreboard({
   teamIds,
   teamNames,
@@ -24,59 +27,60 @@ export default function Scoreboard({
     setEditing(teamId);
     setEditValue(teamNames[teamId] || '');
   }
-
   function commitEdit() {
     if (editing) onRename(editing, editValue.trim());
     setEditing(null);
   }
 
   return (
-    <div className="bg-black/30 border-t border-[#E8D5B7]/15 px-2 py-3 sm:py-4">
-      <div className="max-w-6xl mx-auto grid grid-cols-4 gap-2 sm:gap-4">
+    <div className="bg-black/35 border-t border-[#E8D5B7]/15 px-2 py-1.5 shrink-0">
+      <div className="max-w-6xl mx-auto grid grid-cols-4 gap-1.5 sm:gap-3">
         {teamIds.map((t) => (
           <div
             key={t}
-            className="bg-white/8 rounded-lg p-2 sm:p-3 flex flex-col items-center"
+            className="bg-white/8 rounded-lg px-2 py-1 flex items-center justify-between gap-1.5"
           >
-            {editing === t ? (
-              <input
-                autoFocus
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                onBlur={commitEdit}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') commitEdit();
-                  if (e.key === 'Escape') setEditing(null);
-                }}
-                className="bg-white text-[#5C1A2F] px-2 py-1 rounded text-xs sm:text-sm w-full text-center"
-                placeholder="Team name"
-              />
-            ) : (
-              <button
-                onClick={() => startEdit(t)}
-                className="text-[10px] sm:text-sm font-bold uppercase tracking-wider opacity-85 hover:opacity-100 truncate w-full text-center"
-                title="Click to rename"
-              >
-                {teamNames[t] || t}
-              </button>
-            )}
-            <div className="text-xl sm:text-3xl font-extrabold mt-1 text-[#E8D5B7]">
-              ${(scores[t] ?? 0).toLocaleString()}
+            <div className="min-w-0 flex-1">
+              {editing === t ? (
+                <input
+                  autoFocus
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={commitEdit}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitEdit();
+                    if (e.key === 'Escape') setEditing(null);
+                  }}
+                  className="bg-white text-[#5C1A2F] px-1.5 py-0.5 rounded text-[11px] sm:text-xs w-full"
+                  placeholder="Team name"
+                />
+              ) : (
+                <button
+                  onClick={() => startEdit(t)}
+                  className="text-[10px] sm:text-xs font-bold uppercase tracking-wider opacity-85 hover:opacity-100 truncate w-full text-left leading-tight"
+                  title="Click to rename"
+                >
+                  {teamNames[t] || t}
+                </button>
+              )}
+              <div className="text-base sm:text-xl font-extrabold text-[#E8D5B7] tabular-nums leading-tight">
+                ${(scores[t] ?? 0).toLocaleString()}
+              </div>
             </div>
-            <div className="flex gap-1 mt-1">
-              <button
-                onClick={() => onAdjust(t, -100)}
-                className="bg-white/10 hover:bg-white/20 text-xs px-2 py-0.5 rounded transition-colors"
-                title="Subtract 100"
-              >
-                −100
-              </button>
+            <div className="flex flex-col gap-0.5 shrink-0">
               <button
                 onClick={() => onAdjust(t, 100)}
-                className="bg-white/10 hover:bg-white/20 text-xs px-2 py-0.5 rounded transition-colors"
-                title="Add 100"
+                className="bg-white/10 hover:bg-white/20 text-[10px] leading-none px-1.5 py-0.5 rounded transition-colors"
+                title="Add 100 (manual)"
               >
                 +100
+              </button>
+              <button
+                onClick={() => onAdjust(t, -100)}
+                className="bg-white/10 hover:bg-white/20 text-[10px] leading-none px-1.5 py-0.5 rounded transition-colors"
+                title="Subtract 100 (manual)"
+              >
+                −100
               </button>
             </div>
           </div>
