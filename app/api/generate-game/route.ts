@@ -1,6 +1,6 @@
 // POST /api/generate-game
-// Pulls all responses for an event, calls Claude (or falls back to sample data
-// if ANTHROPIC_API_KEY is missing), saves the game, returns the game token.
+// Pulls all per-subject responses for an event, calls Claude (or falls back to
+// sample data if ANTHROPIC_API_KEY is missing), saves the game, returns the token.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminSupabase } from '@/lib/supabase';
@@ -8,7 +8,7 @@ import { generateGame } from '@/lib/anthropic';
 import { sampleGame } from '@/lib/sample-game';
 import type { Event, Respondent, Response, GameData } from '@/lib/types';
 
-export const maxDuration = 60; // allow up to 60s for Claude call on Vercel
+export const maxDuration = 60;
 
 interface Body {
   event_id?: string;
@@ -24,7 +24,6 @@ export async function POST(req: NextRequest) {
 
     const supabase = getAdminSupabase();
 
-    // Load event
     const { data: event, error: eventErr } = await supabase
       .from('events')
       .select('*')
@@ -34,7 +33,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'event not found' }, { status: 404 });
     }
 
-    // Load respondents
+    const subjects = (event.subjects as Event['subjects']) || [];
+    const totalCats = subjects.reduce((n, s) => n + (s.category_count || 0), 0);
+    if (totalCats !== 5) {
+      return NextResponse.json(
+        { error: `event subjects don't sum to 5 categories (got ${totalCats}). Update subjects before generating.` },
+        { status: 400 }
+      );
+    }
+
     const { data: respondents, error: rErr } = await supabase
       .from('respondents')
       .select('*')
@@ -71,7 +78,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Upsert the game row (one per event)
     const { data: existingGame } = await supabase
       .from('games')
       .select('*')
@@ -104,7 +110,6 @@ export async function POST(req: NextRequest) {
       gameRow = data;
     }
 
-    // Mark event as generated
     await supabase
       .from('events')
       .update({ status: 'generated', generated_at: new Date().toISOString() })

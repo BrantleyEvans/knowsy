@@ -1,10 +1,8 @@
-// Public questionnaire page — server component that loads respondent + event,
-// then hands off to the client form.
+// Public questionnaire page — loads respondent + event, hands off to client form.
 
 import { notFound } from 'next/navigation';
 import { getAdminSupabase } from '@/lib/supabase';
 import QuestionnaireForm from '@/components/QuestionnaireForm';
-import { getQuestionsForRole, renderQuestionText } from '@/lib/questions';
 import type { Event, Respondent } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -31,20 +29,11 @@ export default async function QuestionnairePage({ params }: PageProps) {
     .single();
   if (!event) notFound();
 
-  const r = respondent as Respondent;
-  const e = event as Event;
-
-  const questions = getQuestionsForRole(r.role).map((q) => ({
-    ...q,
-    text: renderQuestionText(q.text, e.bride_name, e.groom_name),
-  })).filter((q) => !q.spicyOnly || e.tone !== 'wholesome');
-
   return (
     <QuestionnaireForm
-      event={e}
-      respondent={r}
-      questions={questions}
-      alreadySubmitted={Boolean(r.submitted_at)}
+      event={event as Event}
+      respondent={respondent as Respondent}
+      alreadySubmitted={Boolean((respondent as Respondent).submitted_at)}
     />
   );
 }

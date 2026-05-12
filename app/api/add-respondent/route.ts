@@ -1,27 +1,29 @@
 // POST /api/add-respondent
-// Adds a respondent to an event and returns the row (including the token).
+// Adds a respondent to an event. Role is now optional metadata.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminSupabase } from '@/lib/supabase';
-
-const VALID_ROLES = ['bride', 'groom', 'bridesmaid', 'parent', 'friend'];
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { event_id, role, display_name } = body || {};
 
-    if (!event_id || !role) {
-      return NextResponse.json({ error: 'event_id and role are required' }, { status: 400 });
+    if (!event_id) {
+      return NextResponse.json({ error: 'event_id required' }, { status: 400 });
     }
-    if (!VALID_ROLES.includes(role)) {
-      return NextResponse.json({ error: `role must be one of ${VALID_ROLES.join(', ')}` }, { status: 400 });
+    if (!display_name || !display_name.trim()) {
+      return NextResponse.json({ error: 'display_name required' }, { status: 400 });
     }
 
     const supabase = getAdminSupabase();
     const { data, error } = await supabase
       .from('respondents')
-      .insert({ event_id, role, display_name: display_name || null })
+      .insert({
+        event_id,
+        role: role && typeof role === 'string' && role.trim() ? role.trim() : null,
+        display_name: display_name.trim(),
+      })
       .select()
       .single();
 

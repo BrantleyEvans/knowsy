@@ -1,10 +1,11 @@
 // POST /api/submit-questionnaire
-// Saves a batch of responses for one respondent (by token) and marks them submitted.
+// Saves a batch of per-subject responses for one respondent (by token) and marks them submitted.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminSupabase } from '@/lib/supabase';
 
 interface AnswerInput {
+  subject_id: string;
   question_key: string;
   question_text: string;
   answer_text: string;
@@ -27,7 +28,6 @@ export async function POST(req: NextRequest) {
 
     const supabase = getAdminSupabase();
 
-    // Look up the respondent by token
     const { data: respondent, error: lookupErr } = await supabase
       .from('respondents')
       .select('*')
@@ -44,11 +44,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Insert responses
     const rows = body.answers
-      .filter((a) => a.answer_text && a.answer_text.trim())
+      .filter((a) => a.answer_text && a.answer_text.trim() && a.subject_id)
       .map((a) => ({
         respondent_id: respondent.id,
+        subject_id: a.subject_id,
         question_key: a.question_key,
         question_text: a.question_text,
         answer_text: a.answer_text.trim(),
@@ -64,7 +64,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: insertErr.message }, { status: 500 });
     }
 
-    // Mark respondent submitted
     const { error: updateErr } = await supabase
       .from('respondents')
       .update({ submitted_at: new Date().toISOString() })

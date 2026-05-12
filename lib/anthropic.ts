@@ -1,7 +1,11 @@
 // Anthropic client + the generateGame function — the heart of the product.
+//
+// v2 model: input is a list of host-configured subjects (each with a
+// category_count). The AI distributes 5 board categories per the host's mix
+// and draws each category's content from that subject's pooled responses.
 
 import Anthropic from '@anthropic-ai/sdk';
-import type { Event, GameData, Respondent, Response } from './types';
+import type { Event, GameData, Respondent, Response, Subject } from './types';
 
 const MODEL = 'claude-sonnet-4-5-20250929';
 
@@ -13,36 +17,49 @@ function getClient(): Anthropic {
   return new Anthropic({ apiKey });
 }
 
-export const GAME_GENERATION_SYSTEM_PROMPT = `You are generating a personalized Jeopardy-style trivia game for a bachelorette/bachelor party. The game will be played live at the party with 4 teams competing. Your job is to take real, specific details from the respondents' survey answers and turn them into 5 categories x 5 questions each, plus one Final Jeopardy question.
+export const GAME_GENERATION_SYSTEM_PROMPT = `You are generating a personalized trivia game for a bachelorette/bachelor party. The game will be played live at the party with 4 teams competing. Your job is to take real, specific details from the responses and turn them into a 5-category x 5-question board, plus one Final round question.
+
+THE HOST has pre-configured a list of SUBJECTS — the people who will get their own board categories — along with how many of the 5 total categories each subject should receive. You MUST honor that distribution exactly. For example: subject "Kat" with category_count=2 means TWO categories on the board are about Kat. Sum of category_count across subjects is always exactly 5.
 
 REQUIREMENTS:
-1. CATEGORIES must be specific to this group, not generic. Examples of GOOD category names: "Sarah's Greatest Hits", "Things Mike Has Said At 2am", "Bridesmaid Lore", "Sarah's College Era". Examples of BAD: "About The Bride", "Trivia", "Fun Facts". Every category should be inside-baseball — the kind of name only a friend would write.
-2. QUESTIONS must reference SPECIFIC details from the responses. Bad: "What is Sarah's favorite drink?". Good: "Sarah's drink order at any bar — specify cocktail AND garnish." Use real names, places, stories, exact phrases respondents wrote. Be specific to the point that someone outside the group couldn't answer.
-3. ANSWERS must be verifiable from the responses provided. Do NOT invent facts not in the data. If multiple respondents disagree, use the answer most respondents gave OR phrase the question so multiple answers are acceptable. Keep answers short (1-2 sentences max). CRITICAL: Output answers as plain DECLARATIVE statements, never as questions. Do not use the "What is X?" / "Who is X?" Jeopardy phrasing. Bad: "What is a hand grenade?" Good: "A hand grenade." Bad: "Who is Megan?" Good: "Megan, the maid of honor." The question_text field is the clue; the answer_text field is the statement that resolves it.
-4. DIFFICULTY scales with point value:
+
+1. CATEGORY DISTRIBUTION: Generate exactly the number of categories per subject the host specified. Tag each category with "subject_id" matching the input subject's id. If a subject has multiple categories, give each one a distinct angle (e.g. "Kat's College Era" vs "Kat's Drink Order Has Layers").
+
+2. CATEGORIES must be specific to the subject and the group, not generic. GOOD: "Kat's Greatest Hits", "Things Mike Says At 2am", "Bridesmaid Group Chat Lore". BAD: "About The Bride", "Trivia", "Fun Facts". Every category name should be inside-baseball — the kind only a friend would write.
+
+3. QUESTIONS must reference SPECIFIC details from the responses about that subject. Use real names, places, exact phrasing the respondents used. Be specific to the point that someone outside the group couldn't guess.
+
+4. ANSWERS must be verifiable from the responses. Do NOT invent facts not in the data. Keep answers short (1-2 sentences max). CRITICAL: Output answers as plain DECLARATIVE statements, never as questions. Do not use the "What is X?" / "Who is X?" Jeopardy phrasing. Bad: "What is a hand grenade?" Good: "A hand grenade." Bad: "Who is Megan?" Good: "Megan, the maid of honor." The question_text field is the clue; the answer_text field is the statement that resolves it.
+
+5. DIFFICULTY scales with point value:
    - $100: Easy — most respondents agree on the answer
    - $200: Slightly harder — specific recall
    - $300: Medium — references a specific detail
    - $400: Hard — niche detail or precise wording
    - $500: Very hard — a single specific story or precise detail
-5. TONE: Match the requested tone from the event:
-   - wholesome: PG, sweet, celebrates the bride. No edgy content.
+
+6. TONE: Match the requested tone:
+   - wholesome: PG, sweet, celebrates the people. No edgy content.
    - spicy: PG-13, includes embarrassing moments and inside jokes. Default.
-   - wild: R-rated, includes the spicier stories, but never mean-spirited.
-6. EVERY question should LAND. No filler. If you don't have enough material for a 5th question in a category, fold it into another category — but you must produce exactly 5 categories of 5 questions each.
-7. FINAL JEOPARDY should be the most emotionally resonant question — something that might make the bride laugh AND tear up. Reference a moment from the data that hits.
-8. AVOID: mean-spirited questions, references to exes, sexual content beyond suggestive (even on "wild" tone), anything that would embarrass the bride in front of family.
+   - wild: R-rated, the spicier stories, but never mean-spirited.
+
+7. EVERY question should LAND. No filler. If a subject's responses are thin, ask the host to collect more rather than making things up — but you still MUST output 5 questions per category. Use the same source detail from different angles before inventing.
+
+8. FINAL ROUND should be the most emotionally resonant question — one that might make people laugh AND tear up. Reference a moment from the data that hits. It can be about any subject or about the event/relationship as a whole.
+
+9. AVOID: mean-spirited questions, references to exes, sexual content beyond suggestive (even on "wild" tone), anything that would embarrass anyone in front of family.
 
 OUTPUT (strict JSON, no preamble, no markdown fences):
 {
   "categories": [
     {
       "name": "string",
+      "subject_id": "string (must match one of the input subject ids)",
       "questions": [
         {
           "points": 100,
           "question_text": "string",
-          "answer_text": "string",
+          "answer_text": "string (declarative, not 'What is X?')",
           "source_respondents": ["string array of display names whose answers informed this"]
         }
       ]
@@ -51,11 +68,11 @@ OUTPUT (strict JSON, no preamble, no markdown fences):
   "final_jeopardy": {
     "category": "string",
     "question_text": "string",
-    "answer_text": "string"
+    "answer_text": "string (declarative)"
   }
 }
 
-You must return EXACTLY 5 categories, each with EXACTLY 5 questions at point values 100, 200, 300, 400, 500. Plus exactly one final_jeopardy object.`;
+You must return EXACTLY 5 categories total — the per-subject counts MUST exactly match the host's category_count. Each category has EXACTLY 5 questions at point values 100/200/300/400/500. Plus exactly one final_jeopardy.`;
 
 export interface GenerateGameInput {
   event: Event;
@@ -65,33 +82,50 @@ export interface GenerateGameInput {
 
 function formatPromptBody(input: GenerateGameInput): string {
   const { event, respondents, responses } = input;
+  const subjects: Subject[] = event.subjects || [];
 
-  const respondentBlocks: string[] = [];
+  // Group responses by subject_id
+  const respondentNameById = new Map<string, string>();
   for (const r of respondents) {
-    const myResponses = responses.filter((resp) => resp.respondent_id === r.id);
-    if (myResponses.length === 0) continue;
-    const lines = myResponses
-      .filter((rr) => rr.answer_text && rr.answer_text.trim())
-      .map((rr) => `  Q: ${rr.question_text}\n  A: ${rr.answer_text}`)
-      .join('\n\n');
-    if (!lines) continue;
-    respondentBlocks.push(
-      `--- ${r.display_name || 'Anonymous'} (${r.role}) ---\n${lines}`
+    respondentNameById.set(r.id, r.display_name || 'Anonymous');
+  }
+
+  const blocksBySubjectId = new Map<string, string[]>();
+  for (const r of responses) {
+    if (!r.answer_text || !r.answer_text.trim()) continue;
+    const sid = r.subject_id || 'unassigned';
+    if (!blocksBySubjectId.has(sid)) blocksBySubjectId.set(sid, []);
+    const respondentName = respondentNameById.get(r.respondent_id) || 'Anonymous';
+    blocksBySubjectId.get(sid)!.push(
+      `  [from ${respondentName}]\n  Q: ${r.question_text}\n  A: ${r.answer_text}`
+    );
+  }
+
+  const subjectBlocks: string[] = [];
+  for (const s of subjects) {
+    const ansBlocks = blocksBySubjectId.get(s.id) || [];
+    subjectBlocks.push(
+      `=== SUBJECT: ${s.name} (${s.relationship}) — category_count: ${s.category_count}, id: ${s.id} ===\n${
+        ansBlocks.length > 0
+          ? ansBlocks.join('\n\n')
+          : '(no responses collected for this subject — keep questions generic but still personal-feeling, drawing on the subject name + relationship)'
+      }`
     );
   }
 
   return `EVENT DETAILS:
 - Event name: ${event.event_name}
-- Bride: ${event.bride_name}
-- Groom/partner: ${event.groom_name || '(none listed)'}
 - Event type: ${event.event_type}
-- Tone (this is important — match it): ${event.tone}
+- Tone (match this exactly): ${event.tone}
 
-RESPONSES FROM ${respondentBlocks.length} respondent(s):
+SUBJECTS (${subjects.length}) and their category counts (sum must equal 5):
+${subjects.map((s) => `  - ${s.name} (${s.relationship}): ${s.category_count} category(ies), id=${s.id}`).join('\n')}
 
-${respondentBlocks.join('\n\n')}
+RESPONSES grouped by subject:
 
-Now generate the trivia game as strict JSON per the system prompt. Remember: 5 categories x 5 questions + 1 Final Jeopardy. Use real names and specific details from the responses above. Match the tone "${event.tone}".`;
+${subjectBlocks.join('\n\n')}
+
+Now generate the board as strict JSON per the system prompt. Honor each subject's category_count exactly. Tag each category with subject_id. Answers must be DECLARATIVE STATEMENTS, never "What is X?" questions.`;
 }
 
 function stripJSONFences(text: string): string {

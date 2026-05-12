@@ -1,8 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import type { Subject } from '@/lib/types';
+
+function uid() {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
+  return `subj-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+const RELATIONSHIP_OPTIONS = [
+  'bride',
+  'groom',
+  'partner',
+  'maid of honor',
+  'bridesmaid',
+  'squad',
+  'parents',
+  'parent',
+  'friend',
+  'sibling',
+  'other',
+];
 
 export default function CreateEventPage() {
   const router = useRouter();
@@ -19,21 +39,71 @@ export default function CreateEventPage() {
     creator_email: '',
   });
 
+  // Default bachelorette mix — gets bridge/partner names from form when those fields update.
+  const [subjects, setSubjects] = useState<Subject[]>([
+    { id: uid(), name: '', relationship: 'bride', category_count: 2 },
+    { id: uid(), name: '', relationship: 'partner', category_count: 1 },
+    { id: uid(), name: 'The crew', relationship: 'squad', category_count: 2 },
+  ]);
+
   function onChange<K extends keyof typeof form>(k: K, v: (typeof form)[K]) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
+  // Auto-fill subject name from bride/groom when the corresponding form field changes
+  function setBrideName(v: string) {
+    onChange('bride_name', v);
+    setSubjects((subs) => subs.map((s, i) =>
+      i === 0 && s.relationship === 'bride' && !s.name ? { ...s, name: v } : s
+    ));
+  }
+  function setGroomName(v: string) {
+    onChange('groom_name', v);
+    setSubjects((subs) => subs.map((s) =>
+      s.relationship === 'partner' && !s.name ? { ...s, name: v } : s
+    ));
+  }
+
+  function updateSubject(id: string, patch: Partial<Subject>) {
+    setSubjects((subs) => subs.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  }
+  function addSubject() {
+    setSubjects((subs) => [...subs, { id: uid(), name: '', relationship: 'friend', category_count: 1 }]);
+  }
+  function removeSubject(id: string) {
+    setSubjects((subs) => subs.filter((s) => s.id !== id));
+  }
+
+  const totalCats = useMemo(() => subjects.reduce((n, s) => n + (Number(s.category_count) || 0), 0), [subjects]);
+  const subjectsValid = totalCats === 5 && subjects.every((s) => s.name.trim().length > 0);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!subjectsValid) {
+      setError(
+        totalCats === 5
+          ? 'Every subject needs a name.'
+          : `Subjects must add up to exactly 5 categories. You have ${totalCats}.`
+      );
+      return;
+    }
+
     setSubmitting(true);
     try {
-      // TODO(stripe): replace this direct create with a Stripe Checkout session,
-      // then create the event upon webhook success. For MVP we just create it.
       const res = await fetch('/api/create-event', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          subjects: subjects.map((s) => ({
+            id: s.id,
+            name: s.name.trim(),
+            relationship: s.relationship.trim() || 'guest',
+            category_count: Number(s.category_count),
+          })),
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to create event');
@@ -53,7 +123,7 @@ export default function CreateEventPage() {
         Plan her party.
       </h1>
       <p className="text-[#3A1525]/70 mt-3">
-        Takes 30 seconds. You can edit later.
+        Takes 60 seconds. You can edit later.
       </p>
 
       <form onSubmit={onSubmit} className="mt-8 space-y-5">
@@ -72,7 +142,7 @@ export default function CreateEventPage() {
             <input
               required
               value={form.bride_name}
-              onChange={(e) => onChange('bride_name', e.target.value)}
+              onChange={(e) => setBrideName(e.target.value)}
               placeholder="Laura"
               className="input"
             />
@@ -80,7 +150,7 @@ export default function CreateEventPage() {
           <Field label="Her partner's name (optional)">
             <input
               value={form.groom_name}
-              onChange={(e) => onChange('groom_name', e.target.value)}
+              onChange={(e) => setGroomName(e.target.value)}
               placeholder="Brantley"
               className="input"
             />
@@ -129,11 +199,73 @@ export default function CreateEventPage() {
               </button>
             ))}
           </div>
-          <p className="text-xs text-[#3A1525]/60 mt-2 leading-relaxed">
-            <strong>Wholesome</strong> = PG, sweet, no edge. <strong>Spicy</strong> = PG-13, inside jokes, embarrassing
-            moments. <strong>Wild</strong> = R-rated, the spicier stories — never mean-spirited.
-          </p>
         </Field>
+
+        {/* Subjects builder */}
+        <div className="card !p-5">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="font-bold text-base text-[#5C1A2F]">Who gets their own categories?</h3>
+            <span className={`text-xs font-bold tabular-nums ${
+              totalCats === 5 ? 'text-green-700' : 'text-[#B76E79]'
+            }`}>
+              {totalCats} / 5 categories
+            </span>
+          </div>
+          <p className="text-xs text-[#3A1525]/65 mb-3 leading-relaxed">
+            The board is 5 columns. Pick the people (or groups) and decide who
+            gets how many. The squad shares one card; the bride can have two.
+            Total must equal 5.
+          </p>
+
+          <div className="space-y-2">
+            {subjects.map((s, i) => (
+              <div key={s.id} className="grid grid-cols-12 gap-2 items-center">
+                <input
+                  value={s.name}
+                  onChange={(e) => updateSubject(s.id, { name: e.target.value })}
+                  placeholder={i === 0 ? 'Bride name' : i === 1 ? 'Partner name' : 'Subject name'}
+                  className="input col-span-5 !py-2 !px-3 text-sm"
+                />
+                <select
+                  value={s.relationship}
+                  onChange={(e) => updateSubject(s.id, { relationship: e.target.value })}
+                  className="input col-span-4 !py-2 !px-3 text-sm"
+                >
+                  {RELATIONSHIP_OPTIONS.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+                <select
+                  value={s.category_count}
+                  onChange={(e) => updateSubject(s.id, { category_count: Number(e.target.value) })}
+                  className="input col-span-2 !py-2 !px-3 text-sm text-center"
+                >
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => removeSubject(s.id)}
+                  disabled={subjects.length <= 1}
+                  className="col-span-1 text-[#B76E79]/70 hover:text-[#B76E79] disabled:opacity-25 text-lg leading-none"
+                  title="Remove subject"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={addSubject}
+            disabled={subjects.length >= 5}
+            className="mt-3 text-sm text-[#B76E79] hover:text-[#9A5660] font-semibold disabled:opacity-40"
+          >
+            + Add another subject
+          </button>
+        </div>
 
         <Field label="Your email (so we can find your event later)">
           <input
@@ -153,7 +285,7 @@ export default function CreateEventPage() {
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || !subjectsValid}
           className="btn-primary w-full py-4 text-lg disabled:cursor-not-allowed"
         >
           {submitting ? 'Creating…' : 'Plan her party (Stripe stubbed — $0 today)'}

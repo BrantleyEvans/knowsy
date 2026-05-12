@@ -1,8 +1,19 @@
-// All TypeScript types for the PartyJeopardy app.
+// All TypeScript types for the Knowsy app.
 
 export type Tone = 'wholesome' | 'spicy' | 'wild';
 export type EventStatus = 'collecting' | 'generated' | 'played' | 'archived';
-export type RespondentRole = 'bride' | 'groom' | 'bridesmaid' | 'parent' | 'friend';
+
+/**
+ * A "subject" is a person (or group) the host has chosen to feature on the
+ * board, plus how many of the 5 categories they get. Sum of category_count
+ * across all subjects must equal 5.
+ */
+export interface Subject {
+  id: string;            // stable id within the event (e.g. crypto.randomUUID())
+  name: string;          // display name shown to respondents + AI
+  relationship: string;  // freeform: "bride" | "groom" | "partner" | "squad" | "parents" | "friends" | …
+  category_count: number; // 1–5
+}
 
 export interface Event {
   id: string;
@@ -15,6 +26,7 @@ export interface Event {
   creator_email: string | null;
   stripe_payment_id: string | null;
   status: EventStatus;
+  subjects: Subject[];   // v2 — host-configured category mix
   created_at: string;
   generated_at: string | null;
 }
@@ -22,7 +34,7 @@ export interface Event {
 export interface Respondent {
   id: string;
   event_id: string;
-  role: RespondentRole;
+  role: string | null;   // v2 — optional metadata only
   display_name: string | null;
   token: string;
   submitted_at: string | null;
@@ -32,25 +44,20 @@ export interface Respondent {
 export interface Response {
   id: string;
   respondent_id: string;
+  subject_id: string | null;  // v2 — which subject this answer is about
   question_key: string;
   question_text: string | null;
   answer_text: string | null;
   created_at: string;
 }
 
-// Question bank types
-export type QuestionInputType = 'text' | 'longtext' | 'multiselect' | 'select';
-
-export interface QuestionDef {
+// Open-ended questionnaire prompt
+export interface SubjectPrompt {
   key: string;
-  text: string;
-  type: QuestionInputType;
-  options?: string[];
-  optional?: boolean;
-  spicyOnly?: boolean;
+  template: string; // contains [NAME] placeholder
 }
 
-// Generated game shape (output from Claude)
+// Generated game shape (output from Claude) — unchanged
 export interface GameQuestion {
   points: number;
   question_text: string;
@@ -60,6 +67,7 @@ export interface GameQuestion {
 
 export interface GameCategory {
   name: string;
+  subject_id?: string; // v2 — which subject this category belongs to
   questions: GameQuestion[];
 }
 
@@ -74,7 +82,6 @@ export interface GameData {
   final_jeopardy: FinalJeopardy;
 }
 
-// Game state (mutable during play)
 export interface TeamScores {
   [teamId: string]: number;
 }

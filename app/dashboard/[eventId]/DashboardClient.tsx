@@ -3,15 +3,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import type { Event, Respondent, RespondentRole } from '@/lib/types';
-
-const ROLES: { value: RespondentRole; label: string }[] = [
-  { value: 'bride', label: 'Bride' },
-  { value: 'groom', label: 'Partner' },
-  { value: 'bridesmaid', label: 'Bridesmaid' },
-  { value: 'parent', label: 'Parent' },
-  { value: 'friend', label: 'Friend' },
-];
+import type { Event, Respondent, Subject } from '@/lib/types';
 
 interface Props {
   event: Event;
@@ -30,8 +22,8 @@ export default function DashboardClient({
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [newRole, setNewRole] = useState<RespondentRole>('bridesmaid');
   const [newName, setNewName] = useState('');
+  const [newRole, setNewRole] = useState(''); // optional, freeform
 
   const [, startTransition] = useTransition();
 
@@ -51,6 +43,10 @@ export default function DashboardClient({
   const submittedPct = totalCount === 0 ? 0 : (submittedCount / totalCount) * 100;
   const canGenerate = totalCount > 0 && submittedPct >= 50;
 
+  const subjects: Subject[] = event.subjects || [];
+  const totalCats = subjects.reduce((n, s) => n + (s.category_count || 0), 0);
+  const subjectsValid = totalCats === 5 && subjects.length > 0;
+
   async function addRespondent() {
     if (!newName.trim() || respondents.length >= 10) return;
     setAdding(true);
@@ -61,14 +57,15 @@ export default function DashboardClient({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           event_id: event.id,
-          role: newRole,
           display_name: newName.trim(),
+          role: newRole.trim() || null,
         }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed');
       setRespondents((rs) => [...rs, json.respondent]);
       setNewName('');
+      setNewRole('');
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -111,9 +108,7 @@ export default function DashboardClient({
       if (el) {
         const orig = el.textContent;
         el.textContent = 'Copied!';
-        setTimeout(() => {
-          if (el) el.textContent = orig;
-        }, 1500);
+        setTimeout(() => { if (el) el.textContent = orig; }, 1500);
       }
     });
   }
@@ -146,6 +141,39 @@ export default function DashboardClient({
         )}
       </div>
 
+      {/* Subject mix */}
+      <div className="mt-8 card">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-lg text-[#5C1A2F]">Board mix</h2>
+          <span className={`text-xs font-bold tabular-nums ${
+            subjectsValid ? 'text-green-700' : 'text-[#B76E79]'
+          }`}>
+            {totalCats} / 5 categories
+          </span>
+        </div>
+        <p className="text-xs text-[#3A1525]/55 mt-1 mb-3">
+          The board has 5 columns, split across these subjects. (Edit support coming soon — for now, set at event creation.)
+        </p>
+        <ul className="flex flex-wrap gap-2">
+          {subjects.length === 0 && (
+            <li className="text-sm text-[#3A1525]/55">No subjects configured.</li>
+          )}
+          {subjects.map((s) => (
+            <li
+              key={s.id}
+              className="bg-[#F8D7DC] text-[#5C1A2F] px-3 py-1.5 rounded-full text-sm flex items-center gap-2"
+            >
+              <span className="font-semibold">{s.name}</span>
+              <span className="text-[#3A1525]/55 text-xs uppercase tracking-wider">{s.relationship}</span>
+              <span className="bg-white text-[#5C1A2F] text-xs font-bold px-2 py-0.5 rounded-full">
+                ×{s.category_count}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Crew responses progress */}
       <div className="mt-8 card">
         <div className="flex items-center justify-between">
           <h2 className="font-bold text-lg text-[#5C1A2F]">Crew responses</h2>
@@ -187,9 +215,11 @@ export default function DashboardClient({
                       <span className="font-semibold text-[#5C1A2F]">
                         {r.display_name || '(no name)'}
                       </span>
-                      <span className="text-xs uppercase tracking-wider text-[#3A1525]/55">
-                        {r.role}
-                      </span>
+                      {r.role && (
+                        <span className="text-xs uppercase tracking-wider text-[#3A1525]/55">
+                          {r.role}
+                        </span>
+                      )}
                       {r.submitted_at ? (
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-semibold">
                           submitted
@@ -232,21 +262,18 @@ export default function DashboardClient({
             Add to the crew ({respondents.length} / 10)
           </h3>
           <div className="flex flex-col sm:flex-row gap-3">
-            <select
-              value={newRole}
-              onChange={(e) => setNewRole(e.target.value as RespondentRole)}
-              className="input sm:w-40"
-            >
-              {ROLES.map((r) => (
-                <option key={r.value} value={r.value}>{r.label}</option>
-              ))}
-            </select>
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addRespondent()}
               placeholder="Display name (e.g. Megan B.)"
               className="input flex-1"
+            />
+            <input
+              value={newRole}
+              onChange={(e) => setNewRole(e.target.value)}
+              placeholder="Role (optional, e.g. maid of honor)"
+              className="input sm:w-56"
             />
             <button
               onClick={addRespondent}
@@ -274,7 +301,7 @@ export default function DashboardClient({
           {generating ? 'Building (can take 30s)…' : 'Build her game'}
         </button>
         {!canGenerate && totalCount === 0 && (
-          <p className="text-xs text-[#3A1525]/55 mt-3">Add at least one bridesmaid first.</p>
+          <p className="text-xs text-[#3A1525]/55 mt-3">Add at least one person first.</p>
         )}
       </div>
 
