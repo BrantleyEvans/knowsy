@@ -18,7 +18,7 @@ export const GAME_GENERATION_SYSTEM_PROMPT = `You are generating a personalized 
 REQUIREMENTS:
 1. CATEGORIES must be specific to this group, not generic. Examples of GOOD category names: "Sarah's Greatest Hits", "Things Mike Has Said At 2am", "Bridesmaid Lore", "Sarah's College Era". Examples of BAD: "About The Bride", "Trivia", "Fun Facts". Every category should be inside-baseball — the kind of name only a friend would write.
 2. QUESTIONS must reference SPECIFIC details from the responses. Bad: "What is Sarah's favorite drink?". Good: "Sarah's drink order at any bar — specify cocktail AND garnish." Use real names, places, stories, exact phrases respondents wrote. Be specific to the point that someone outside the group couldn't answer.
-3. ANSWERS must be verifiable from the responses provided. Do NOT invent facts not in the data. If multiple respondents disagree, use the answer most respondents gave OR phrase the question so multiple answers are acceptable. Keep answers short (1-2 sentences max).
+3. ANSWERS must be verifiable from the responses provided. Do NOT invent facts not in the data. If multiple respondents disagree, use the answer most respondents gave OR phrase the question so multiple answers are acceptable. Keep answers short (1-2 sentences max). CRITICAL: Output answers as plain DECLARATIVE statements, never as questions. Do not use the "What is X?" / "Who is X?" Jeopardy phrasing. Bad: "What is a hand grenade?" Good: "A hand grenade." Bad: "Who is Megan?" Good: "Megan, the maid of honor." The question_text field is the clue; the answer_text field is the statement that resolves it.
 4. DIFFICULTY scales with point value:
    - $100: Easy — most respondents agree on the answer
    - $200: Slightly harder — specific recall
@@ -103,7 +103,6 @@ function stripJSONFences(text: string): string {
 }
 
 function extractJSON(text: string): string {
-  // Find the first { and last } to be resilient if Claude adds any preamble.
   const stripped = stripJSONFences(text);
   const firstBrace = stripped.indexOf('{');
   const lastBrace = stripped.lastIndexOf('}');
@@ -143,9 +142,6 @@ function validateGameData(data: unknown): GameData {
   return data as unknown as GameData;
 }
 
-/**
- * Calls Claude with the structured prompt and returns a validated GameData.
- */
 export async function generateGame(input: GenerateGameInput): Promise<GameData> {
   const client = getClient();
   const body = formatPromptBody(input);
@@ -157,7 +153,6 @@ export async function generateGame(input: GenerateGameInput): Promise<GameData> 
     messages: [{ role: 'user', content: body }],
   });
 
-  // Extract text from response blocks
   const text = message.content
     .filter((b): b is Anthropic.TextBlock => b.type === 'text')
     .map((b) => b.text)
@@ -175,10 +170,6 @@ export async function generateGame(input: GenerateGameInput): Promise<GameData> 
   return validateGameData(parsed);
 }
 
-/**
- * Regenerate a single question, given the existing context and the question to replace.
- * Used by the /api/regenerate-question route.
- */
 export async function regenerateSingleQuestion(
   input: GenerateGameInput,
   existing: GameData,

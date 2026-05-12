@@ -40,7 +40,7 @@ export default function QuestionnaireForm({
     const required = questions.filter((q) => !q.optional);
     const missing = required.filter((q) => !answers[q.key] || !answers[q.key].trim());
     if (missing.length > 0) {
-      setError(`Please answer all required questions. Missing ${missing.length}.`);
+      setError(`Almost — answer the missing ${missing.length} question(s) before submitting.`);
       const el = document.getElementById(`q-${missing[0].key}`);
       el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
@@ -77,10 +77,10 @@ export default function QuestionnaireForm({
       <main className="flex-1 px-6 py-20 flex items-center justify-center">
         <div className="max-w-md text-center">
           <div className="text-5xl mb-6">🍾</div>
-          <h1 className="text-2xl font-bold text-[#1E1B3A]">Already submitted</h1>
-          <p className="mt-3 text-[#1E1B3A]/70">
+          <h1 className="script text-4xl text-[#5C1A2F]">Already in.</h1>
+          <p className="mt-3 text-[#3A1525]/70">
             Looks like this link has already been used. If you think that&apos;s wrong,
-            ask whoever sent it to you to issue a new one.
+            ask whoever sent it to issue a new one.
           </p>
         </div>
       </main>
@@ -90,20 +90,19 @@ export default function QuestionnaireForm({
   return (
     <main className="flex-1 px-5 py-8 max-w-2xl mx-auto w-full">
       <div className="text-center mb-8">
-        <p className="uppercase tracking-[0.22em] text-xs text-[#E85D5D] font-bold">
+        <p className="uppercase tracking-[0.26em] text-[10px] sm:text-xs text-[#B76E79] font-bold">
           {event.event_name}
         </p>
-        <h1 className="text-3xl sm:text-4xl font-extrabold mt-3 text-[#1E1B3A]">
-          Tell us about {event.bride_name}
+        <h1 className="script text-5xl sm:text-6xl mt-4 text-[#5C1A2F]">
+          Tell us about {event.bride_name}.
         </h1>
-        <p className="mt-3 text-[#1E1B3A]/70 text-sm sm:text-base">
-          Your answers go into a personalized trivia game played at the party.
-          Be specific — that&apos;s the whole game.
+        <p className="mt-4 text-[#3A1525]/75 text-sm sm:text-base">
+          Your answers go into a personalized trivia game we play at the bach.
+          Be specific — the inside-joke energy is the whole game.
         </p>
-        <p className="mt-2 text-xs uppercase tracking-wider text-[#1E1B3A]/45">
-          Filling in as:{' '}
-          <span className="font-bold text-[#1E1B3A]/80">{respondent.display_name}</span> (
-          {respondent.role})
+        <p className="mt-3 text-xs uppercase tracking-wider text-[#3A1525]/45">
+          Filling in as{' '}
+          <span className="font-bold text-[#5C1A2F]/85">{respondent.display_name}</span> ({respondent.role})
         </p>
       </div>
 
@@ -112,11 +111,11 @@ export default function QuestionnaireForm({
           <div key={q.key} id={`q-${q.key}`} className="card">
             <label className="block">
               <div className="flex items-start gap-2 mb-3">
-                <span className="text-[#E85D5D] font-extrabold">{i + 1}.</span>
-                <span className="font-semibold text-[#1E1B3A] leading-snug">
+                <span className="text-[#B76E79] font-extrabold">{i + 1}.</span>
+                <span className="font-semibold text-[#5C1A2F] leading-snug">
                   {q.text}
                   {q.optional && (
-                    <span className="text-[#1E1B3A]/40 text-sm ml-2 font-normal">(optional)</span>
+                    <span className="text-[#3A1525]/45 text-sm ml-2 font-normal">(optional)</span>
                   )}
                 </span>
               </div>
@@ -147,9 +146,7 @@ export default function QuestionnaireForm({
                 >
                   <option value="">Pick one…</option>
                   {q.options.map((o) => (
-                    <option key={o} value={o}>
-                      {o}
-                    </option>
+                    <option key={o} value={o}>{o}</option>
                   ))}
                 </select>
               )}
@@ -164,8 +161,8 @@ export default function QuestionnaireForm({
                         onClick={() => toggleMulti(q.key, opt)}
                         className={`px-3 py-2 rounded-lg text-sm text-left border transition-colors ${
                           selected
-                            ? 'bg-[#E85D5D] text-white border-[#E85D5D]'
-                            : 'bg-white text-[#1E1B3A] border-[#1E1B3A]/15 hover:border-[#1E1B3A]/40'
+                            ? 'bg-[#B76E79] text-white border-[#B76E79]'
+                            : 'bg-white text-[#5C1A2F] border-[#B76E79]/20 hover:border-[#B76E79]/55'
                         }`}
                       >
                         {opt}
@@ -189,10 +186,10 @@ export default function QuestionnaireForm({
           disabled={submitting}
           className="btn-primary w-full py-4 text-lg disabled:cursor-not-allowed"
         >
-          {submitting ? 'Sending…' : 'Submit answers'}
+          {submitting ? 'Sending…' : 'Send it'}
         </button>
-        <p className="text-xs text-[#1E1B3A]/40 text-center">
-          You can only submit once, so make sure everything looks good.
+        <p className="text-xs text-[#3A1525]/45 text-center">
+          One shot — make sure everything looks right before you submit.
         </p>
       </form>
     </main>

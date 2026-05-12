@@ -61,7 +61,6 @@ export default function JeopardyBoard({
   const [phase, setPhase] = useState<Phase>('board');
   const [activeTile, setActiveTile] = useState<{ ci: number; qi: number } | null>(null);
 
-  // Hydrate from localStorage if cache is newer than server
   useEffect(() => {
     const key = `knowsy-game-${gameToken}`;
     try {
@@ -85,7 +84,6 @@ export default function JeopardyBoard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameToken]);
 
-  // Save to localStorage + server on every change
   useEffect(() => {
     const key = `knowsy-game-${gameToken}`;
     try {
@@ -199,7 +197,6 @@ export default function JeopardyBoard({
     setPhase('winner');
   };
 
-  // QUESTION VIEW
   if (phase === 'question' && activeTile) {
     const q = gameData.categories[activeTile.ci].questions[activeTile.qi];
     const cat = gameData.categories[activeTile.ci].name;
@@ -217,14 +214,13 @@ export default function JeopardyBoard({
     );
   }
 
-  // FINAL SETUP — wagers
   if (phase === 'final-setup') {
     return (
       <div className="game-surface min-h-screen p-6 sm:p-12 flex flex-col">
-        <h2 className="text-center text-2xl sm:text-4xl font-extrabold uppercase tracking-[0.2em] text-[#FFC857]">
+        <h2 className="script text-center text-5xl sm:text-7xl text-[#E8D5B7]">
           Final Knowsy
         </h2>
-        <p className="text-center mt-6 text-base opacity-75">Category</p>
+        <p className="text-center mt-6 text-base opacity-75 uppercase tracking-widest">Category</p>
         <p className="text-center mt-2 text-3xl sm:text-5xl font-bold">
           {gameData.final_jeopardy.category}
         </p>
@@ -233,8 +229,8 @@ export default function JeopardyBoard({
         </p>
         <div className="mt-6 max-w-2xl mx-auto w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
           {TEAM_IDS.map((t) => (
-            <div key={t} className="bg-white text-[#1E1B3A] rounded-xl p-4">
-              <div className="text-xs uppercase tracking-wider text-[#1E1B3A]/60">
+            <div key={t} className="bg-white text-[#5C1A2F] rounded-xl p-4">
+              <div className="text-xs uppercase tracking-wider text-[#5C1A2F]/60">
                 {(state.team_names || DEFAULT_TEAM_NAMES)[t]}
               </div>
               <div className="text-2xl font-extrabold mt-1">
@@ -248,14 +244,14 @@ export default function JeopardyBoard({
                   setWagers((w) => ({ ...w, [t]: e.target.value }))
                 }
                 placeholder="Wager…"
-                className="mt-2 w-full px-3 py-2 border border-[#1E1B3A]/20 rounded-lg"
+                className="mt-2 w-full px-3 py-2 border border-[#B76E79]/25 rounded-lg"
               />
             </div>
           ))}
         </div>
         <button
           onClick={confirmWagers}
-          className="mt-10 mx-auto bg-[#E85D5D] hover:bg-[#C94646] text-white font-bold px-8 py-3 rounded-full transition-colors"
+          className="mt-10 mx-auto bg-[#B76E79] hover:bg-[#9A5660] text-white font-bold px-8 py-3 rounded-full transition-colors"
         >
           Reveal the question →
         </button>
@@ -263,11 +259,10 @@ export default function JeopardyBoard({
     );
   }
 
-  // FINAL QUESTION
   if (phase === 'final-question') {
     return (
       <div className="game-surface min-h-screen p-6 sm:p-12 flex flex-col items-center justify-center">
-        <p className="uppercase tracking-[0.3em] text-xs sm:text-sm text-[#FFC857]">
+        <p className="uppercase tracking-[0.3em] text-xs sm:text-sm text-[#E8D5B7]">
           Final Knowsy
         </p>
         <h2 className="text-2xl sm:text-4xl font-bold mt-3 text-center">
@@ -278,7 +273,7 @@ export default function JeopardyBoard({
         </p>
         <button
           onClick={() => setPhase('final-answer')}
-          className="mt-12 bg-[#E85D5D] hover:bg-[#C94646] text-white font-bold px-8 py-3 rounded-full"
+          className="mt-12 bg-[#B76E79] hover:bg-[#9A5660] text-white font-bold px-8 py-3 rounded-full"
         >
           Show answer
         </button>
@@ -286,14 +281,13 @@ export default function JeopardyBoard({
     );
   }
 
-  // FINAL ANSWER
   if (phase === 'final-answer') {
     return (
       <div className="game-surface min-h-screen p-6 sm:p-12 flex flex-col items-center justify-center">
-        <p className="uppercase tracking-[0.3em] text-xs sm:text-sm text-[#FFC857]">
+        <p className="uppercase tracking-[0.3em] text-xs sm:text-sm text-[#E8D5B7]">
           The answer
         </p>
-        <p className="mt-6 text-center text-3xl sm:text-5xl font-extrabold leading-tight max-w-4xl text-[#FFC857]">
+        <p className="mt-6 text-center text-3xl sm:text-5xl font-extrabold leading-tight max-w-4xl text-[#E8D5B7]">
           {gameData.final_jeopardy.answer_text}
         </p>
         <p className="mt-12 opacity-80">Did each team get it right?</p>
@@ -301,13 +295,13 @@ export default function JeopardyBoard({
           {TEAM_IDS.map((t) => (
             <div
               key={t}
-              className="bg-white text-[#1E1B3A] rounded-xl p-3 flex items-center justify-between"
+              className="bg-white text-[#5C1A2F] rounded-xl p-3 flex items-center justify-between"
             >
               <div>
-                <div className="text-xs uppercase tracking-wider text-[#1E1B3A]/60">
+                <div className="text-xs uppercase tracking-wider text-[#5C1A2F]/60">
                   {(state.team_names || DEFAULT_TEAM_NAMES)[t]}
                 </div>
-                <div className="text-xs text-[#1E1B3A]/60">
+                <div className="text-xs text-[#5C1A2F]/60">
                   Wagered ${(state.final_wagers || {})[t] || 0}
                 </div>
               </div>
@@ -339,7 +333,7 @@ export default function JeopardyBoard({
         <button
           onClick={applyFinalResults}
           disabled={TEAM_IDS.some((t) => !(t in finalResults))}
-          className="mt-8 bg-[#E85D5D] hover:bg-[#C94646] disabled:opacity-40 text-white font-bold px-8 py-3 rounded-full"
+          className="mt-8 bg-[#B76E79] hover:bg-[#9A5660] disabled:opacity-40 text-white font-bold px-8 py-3 rounded-full"
         >
           See final scores →
         </button>
@@ -347,7 +341,6 @@ export default function JeopardyBoard({
     );
   }
 
-  // WINNER
   if (phase === 'winner') {
     const sorted = TEAM_IDS.map((t) => ({
       t,
@@ -356,11 +349,11 @@ export default function JeopardyBoard({
     })).sort((a, b) => b.score - a.score);
     return (
       <div className="game-surface min-h-screen p-6 sm:p-12 flex flex-col items-center justify-center">
-        <p className="uppercase tracking-[0.3em] text-xs text-[#FFC857]">Champion</p>
-        <h2 className="text-5xl sm:text-7xl font-extrabold mt-4 text-center">
+        <p className="uppercase tracking-[0.3em] text-xs text-[#E8D5B7]">Champion</p>
+        <h2 className="script text-7xl sm:text-9xl mt-6 text-center text-[#E8D5B7]">
           {sorted[0].name}
         </h2>
-        <p className="text-2xl sm:text-3xl mt-3 text-[#FFC857] font-bold">
+        <p className="text-2xl sm:text-3xl mt-3 text-[#E8D5B7]/85 font-bold">
           ${sorted[0].score.toLocaleString()}
         </p>
         <div className="mt-10 max-w-md w-full space-y-2">
@@ -369,7 +362,7 @@ export default function JeopardyBoard({
               key={t.t}
               className={`flex items-center justify-between px-5 py-3 rounded-xl ${
                 i === 0
-                  ? 'bg-[#FFC857] text-[#1E1B3A]'
+                  ? 'bg-[#E8D5B7] text-[#5C1A2F]'
                   : 'bg-white/10 text-[#FFF8F0]'
               }`}
             >
@@ -390,17 +383,16 @@ export default function JeopardyBoard({
     );
   }
 
-  // DEFAULT: BOARD
   return (
     <div className="game-surface min-h-screen flex flex-col">
       <header className="px-4 sm:px-8 pt-6 pb-3 text-center">
-        <p className="text-xs sm:text-sm uppercase tracking-[0.25em] text-[#FFC857] font-semibold">
+        <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-[#E8D5B7] font-semibold">
           Knowsy
         </p>
-        <h1 className="text-2xl sm:text-4xl font-extrabold mt-1">
+        <h1 className="script text-5xl sm:text-7xl mt-1 text-[#E8D5B7]">
           {brideName ? `${brideName}'s Trivia Night` : eventName}
         </h1>
-        <p className="text-xs sm:text-sm opacity-70 mt-1">
+        <p className="text-xs sm:text-sm opacity-70 mt-2">
           {playedKeys.size} / {totalTiles} questions played
         </p>
       </header>
@@ -434,9 +426,9 @@ export default function JeopardyBoard({
         <div className="text-center pb-3">
           <button
             onClick={startFinal}
-            className="bg-[#E85D5D] hover:bg-[#C94646] text-white font-bold px-8 py-3 rounded-full transition-colors"
+            className="bg-[#B76E79] hover:bg-[#9A5660] text-white font-bold px-8 py-3 rounded-full transition-colors"
           >
-            🎲 Start Final Knowsy
+            🥂 Start Final Knowsy
           </button>
         </div>
       )}

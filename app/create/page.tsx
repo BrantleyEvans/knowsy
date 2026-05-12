@@ -46,40 +46,42 @@ export default function CreateEventPage() {
 
   return (
     <main className="flex-1 px-6 py-12 max-w-2xl mx-auto w-full">
-      <Link href="/" className="text-sm text-[#1E1B3A]/60 hover:text-[#1E1B3A]">
+      <Link href="/" className="text-sm text-[#5C1A2F]/60 hover:text-[#5C1A2F]">
         ← back
       </Link>
-      <h1 className="text-3xl sm:text-4xl font-extrabold mt-4 text-[#1E1B3A]">
-        Create your event
+      <h1 className="script text-5xl sm:text-6xl mt-4 text-[#5C1A2F]">
+        Plan her party.
       </h1>
-      <p className="text-[#1E1B3A]/70 mt-2">Takes 30 seconds. You can edit later.</p>
+      <p className="text-[#3A1525]/70 mt-3">
+        Takes 30 seconds. You can edit later.
+      </p>
 
       <form onSubmit={onSubmit} className="mt-8 space-y-5">
-        <Field label="Event name">
+        <Field label="What's the event called?">
           <input
             required
             value={form.event_name}
             onChange={(e) => onChange('event_name', e.target.value)}
-            placeholder="e.g. Sarah's Bachelorette Weekend"
+            placeholder="e.g. Laura's Bachelorette Weekend"
             className="input"
           />
         </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <Field label="Bride / guest of honor name">
+          <Field label="Bride's name">
             <input
               required
               value={form.bride_name}
               onChange={(e) => onChange('bride_name', e.target.value)}
-              placeholder="Sarah"
+              placeholder="Laura"
               className="input"
             />
           </Field>
-          <Field label="Partner's name (optional)">
+          <Field label="Her partner's name (optional)">
             <input
               value={form.groom_name}
               onChange={(e) => onChange('groom_name', e.target.value)}
-              placeholder="Mike"
+              placeholder="Brantley"
               className="input"
             />
           </Field>
@@ -100,7 +102,7 @@ export default function CreateEventPage() {
               <option value="other">Other</option>
             </select>
           </Field>
-          <Field label="Event date (optional)">
+          <Field label="Date (optional)">
             <input
               type="date"
               value={form.event_date}
@@ -110,7 +112,7 @@ export default function CreateEventPage() {
           </Field>
         </div>
 
-        <Field label="Tone">
+        <Field label="How spicy do you want this?">
           <div className="grid grid-cols-3 gap-2">
             {(['wholesome', 'spicy', 'wild'] as const).map((t) => (
               <button
@@ -119,17 +121,17 @@ export default function CreateEventPage() {
                 onClick={() => onChange('tone', t)}
                 className={`px-3 py-2 rounded-lg border text-sm font-semibold capitalize transition-colors ${
                   form.tone === t
-                    ? 'bg-[#E85D5D] text-white border-[#E85D5D]'
-                    : 'bg-white text-[#1E1B3A] border-[#1E1B3A]/15 hover:border-[#1E1B3A]/40'
+                    ? 'bg-[#B76E79] text-white border-[#B76E79]'
+                    : 'bg-white text-[#5C1A2F] border-[#B76E79]/25 hover:border-[#B76E79]/55'
                 }`}
               >
                 {t}
               </button>
             ))}
           </div>
-          <p className="text-xs text-[#1E1B3A]/55 mt-2">
-            wholesome = PG. spicy = PG-13, inside jokes encouraged. wild = R-rated,
-            the spicier stories. Never mean-spirited.
+          <p className="text-xs text-[#3A1525]/60 mt-2 leading-relaxed">
+            <strong>Wholesome</strong> = PG, sweet, no edge. <strong>Spicy</strong> = PG-13, inside jokes, embarrassing
+            moments. <strong>Wild</strong> = R-rated, the spicier stories — never mean-spirited.
           </p>
         </Field>
 
@@ -154,11 +156,10 @@ export default function CreateEventPage() {
           disabled={submitting}
           className="btn-primary w-full py-4 text-lg disabled:cursor-not-allowed"
         >
-          {submitting ? 'Creating…' : 'Create event (Stripe stubbed — $0 today)'}
+          {submitting ? 'Creating…' : 'Plan her party (Stripe stubbed — $0 today)'}
         </button>
-        <p className="text-xs text-[#1E1B3A]/45 text-center">
-          TODO: this is where the real Stripe Checkout flow will go. For now we
-          create the event directly.
+        <p className="text-xs text-[#3A1525]/45 text-center">
+          TODO: real Stripe Checkout slots in here. For MVP we create the event directly.
         </p>
       </form>
     </main>
@@ -168,7 +169,7 @@ export default function CreateEventPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-sm font-semibold text-[#1E1B3A] mb-1">{label}</span>
+      <span className="block text-sm font-semibold text-[#5C1A2F] mb-1">{label}</span>
       {children}
     </label>
   );

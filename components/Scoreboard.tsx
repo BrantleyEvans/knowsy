@@ -31,7 +31,7 @@ export default function Scoreboard({
   }
 
   return (
-    <div className="bg-black/25 border-t border-white/10 px-2 py-3 sm:py-4">
+    <div className="bg-black/30 border-t border-[#E8D5B7]/15 px-2 py-3 sm:py-4">
       <div className="max-w-6xl mx-auto grid grid-cols-4 gap-2 sm:gap-4">
         {teamIds.map((t) => (
           <div
@@ -48,7 +48,7 @@ export default function Scoreboard({
                   if (e.key === 'Enter') commitEdit();
                   if (e.key === 'Escape') setEditing(null);
                 }}
-                className="bg-white text-[#1E1B3A] px-2 py-1 rounded text-xs sm:text-sm w-full text-center"
+                className="bg-white text-[#5C1A2F] px-2 py-1 rounded text-xs sm:text-sm w-full text-center"
                 placeholder="Team name"
               />
             ) : (
@@ -60,7 +60,7 @@ export default function Scoreboard({
                 {teamNames[t] || t}
               </button>
             )}
-            <div className="text-xl sm:text-3xl font-extrabold mt-1 text-[#FFC857]">
+            <div className="text-xl sm:text-3xl font-extrabold mt-1 text-[#E8D5B7]">
               ${(scores[t] ?? 0).toLocaleString()}
             </div>
             <div className="flex gap-1 mt-1">

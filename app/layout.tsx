@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Knowsy — AI Trivia About The People Who Know You Best',
+  title: 'Knowsy — Personalized Bachelorette Trivia',
   description:
-    'Knowsy turns your friends’ answers into a personalized trivia game for the bachelorette, birthday, or any night that deserves one. AI-built, played live.',
+    'Custom trivia about the bride — written by her crew. Knowsy turns your bridesmaids’ inside jokes and stories into a played-live game for the bachelorette.',
 };
 
 export default function RootLayout({

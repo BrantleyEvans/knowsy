@@ -32,7 +32,7 @@ export default function QuestionDisplay({
     <div className="game-surface min-h-screen flex flex-col p-4 sm:p-10">
       <div className="flex items-center justify-between text-xs sm:text-sm">
         <div className="uppercase tracking-widest opacity-75 font-semibold">{category}</div>
-        <div className="text-[#FFC857] font-extrabold text-xl sm:text-2xl">${points}</div>
+        <div className="text-[#E8D5B7] font-extrabold text-xl sm:text-2xl">${points}</div>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center text-center">
@@ -45,7 +45,7 @@ export default function QuestionDisplay({
             <p className="uppercase tracking-[0.3em] text-xs sm:text-sm opacity-75">
               The answer
             </p>
-            <p className="text-2xl sm:text-4xl font-extrabold mt-3 leading-tight text-[#FFC857]">
+            <p className="text-2xl sm:text-4xl font-extrabold mt-3 leading-tight text-[#E8D5B7]">
               {answer}
             </p>
           </div>
@@ -57,7 +57,7 @@ export default function QuestionDisplay({
           <div className="flex justify-center gap-3">
             <button
               onClick={() => setShowAnswer(true)}
-              className="bg-[#E85D5D] hover:bg-[#C94646] text-white font-bold px-8 py-3 rounded-full text-base sm:text-lg transition-colors"
+              className="bg-[#B76E79] hover:bg-[#9A5660] text-white font-bold px-8 py-3 rounded-full text-base sm:text-lg transition-colors"
             >
               Show answer
             </button>
@@ -75,7 +75,7 @@ export default function QuestionDisplay({
                 onClick={() => setMode('award')}
                 className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
                   mode === 'award'
-                    ? 'bg-[#FFC857] text-[#1E1B3A]'
+                    ? 'bg-[#E8D5B7] text-[#5C1A2F]'
                     : 'bg-white/10 text-white'
                 }`}
               >
@@ -85,7 +85,7 @@ export default function QuestionDisplay({
                 onClick={() => setMode('deduct')}
                 className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
                   mode === 'deduct'
-                    ? 'bg-[#FFC857] text-[#1E1B3A]'
+                    ? 'bg-[#E8D5B7] text-[#5C1A2F]'
                     : 'bg-white/10 text-white'
                 }`}
               >
@@ -97,7 +97,7 @@ export default function QuestionDisplay({
                 <button
                   key={t}
                   onClick={() => (mode === 'award' ? onAward(t) : onDeduct(t))}
-                  className="bg-white text-[#1E1B3A] font-bold py-4 rounded-xl hover:bg-[#E85D5D] hover:text-white transition-colors"
+                  className="bg-white text-[#5C1A2F] font-bold py-4 rounded-xl hover:bg-[#B76E79] hover:text-white transition-colors"
                 >
                   <div className="text-[10px] uppercase tracking-wider opacity-60">
                     {mode === 'award' ? `+$${points}` : `-$${points}`}

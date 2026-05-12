@@ -1,19 +1,24 @@
+@import url("https://fonts.googleapis.com/css2?family=Sacramento&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --color-knowsy-coral: #E85D5D;
-  --color-knowsy-coral-dark: #C94646;
-  --color-knowsy-plum: #1E1B3A;
-  --color-knowsy-plum-2: #2D2952;
+  /* Bachelorette palette */
+  --color-knowsy-blush: #F8D7DC;
+  --color-knowsy-blush-deep: #F3BFC6;
+  --color-knowsy-rose-gold: #B76E79;
+  --color-knowsy-rose-gold-dark: #9A5660;
+  --color-knowsy-burgundy: #5C1A2F;
+  --color-knowsy-burgundy-2: #7A2840;
+  --color-knowsy-champagne: #E8D5B7;
+  --color-knowsy-champagne-deep: #C9B68F;
   --color-knowsy-cream: #FFF8F0;
-  --color-knowsy-peach: #FFE5D9;
-  --color-knowsy-gold: #FFC857;
-  --color-knowsy-ink: #1A1622;
+  --color-knowsy-cream-warm: #FFF5F2;
+  --color-knowsy-ink: #3A1525;
 }
 
 html, body {
   background: #FFF8F0;
-  color: #1A1622;
+  color: #3A1525;
 }
 
 body {
@@ -21,22 +26,30 @@ body {
   font-feature-settings: "ss01", "cv11";
 }
 
+/* The script wordmark — only for "Knowsy" headers, never body */
+.script {
+  font-family: "Sacramento", "Brush Script MT", "Lucida Handwriting", cursive;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
 /* Game surfaces (the dark, projected screens) */
 .game-surface {
-  background-color: #1E1B3A;
+  background: linear-gradient(180deg, #5C1A2F 0%, #4A1525 100%);
   color: #FFF8F0;
   font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 .game-surface .accent {
-  color: #FFC857;
+  color: #E8D5B7;
 }
 
 /* Tile in the 5x5 board */
 .game-tile {
-  background-color: #2D2952;
+  background-color: #7A2840;
   color: #FFF8F0;
-  border: 1px solid rgba(255, 248, 240, 0.08);
+  border: 1px solid rgba(232, 213, 183, 0.18);
   border-radius: 0.75rem;
   transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease;
   position: relative;
@@ -45,8 +58,8 @@ body {
 
 .game-tile:not(.played):hover {
   transform: translateY(-2px);
-  background-color: #E85D5D;
-  border-color: rgba(255, 248, 240, 0.25);
+  background-color: #B76E79;
+  border-color: rgba(232, 213, 183, 0.45);
   cursor: pointer;
 }
 
@@ -55,22 +68,22 @@ body {
 }
 
 .game-tile.played {
-  background-color: #1E1B3A;
+  background-color: #5C1A2F;
   color: transparent;
   opacity: 0.32;
   cursor: not-allowed;
-  border-color: rgba(255, 248, 240, 0.04);
+  border-color: rgba(232, 213, 183, 0.06);
 }
 
 .tile-amount {
-  color: #FFC857;
+  color: #E8D5B7;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 
 .category-header {
-  background: linear-gradient(180deg, #FFC857 0%, #E8AE3A 100%);
-  color: #1E1B3A;
+  background: linear-gradient(180deg, #E8D5B7 0%, #C9B68F 100%);
+  color: #5C1A2F;
   border-radius: 0.5rem;
   font-weight: 800;
   letter-spacing: 0.02em;
@@ -81,17 +94,17 @@ body {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(30, 27, 58, 0.15);
+  border: 1px solid rgba(183, 110, 121, 0.25);
   background: white;
   font-size: 1rem;
   outline: none;
-  color: #1A1622;
+  color: #3A1525;
   transition: border-color 140ms, box-shadow 140ms;
 }
 
 .input:focus {
-  border-color: #E85D5D;
-  box-shadow: 0 0 0 3px rgba(232, 93, 93, 0.15);
+  border-color: #B76E79;
+  box-shadow: 0 0 0 3px rgba(183, 110, 121, 0.18);
 }
 
 textarea.input {
@@ -99,19 +112,21 @@ textarea.input {
   min-height: 100px;
 }
 
-/* CTA button */
+/* CTA button — rose gold */
 .btn-primary {
-  background-color: #E85D5D;
+  background-color: #B76E79;
   color: white;
   font-weight: 600;
   border-radius: 9999px;
   padding: 0.875rem 1.75rem;
-  transition: background-color 140ms, transform 140ms;
+  transition: background-color 140ms, transform 140ms, box-shadow 140ms;
+  box-shadow: 0 1px 0 rgba(154, 86, 96, 0.4), 0 4px 12px rgba(154, 86, 96, 0.18);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #C94646;
+  background-color: #9A5660;
   transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(90, 40, 50, 0.4), 0 6px 16px rgba(154, 86, 96, 0.28);
 }
 
 .btn-primary:disabled {
@@ -122,7 +137,25 @@ textarea.input {
 /* Card */
 .card {
   background: white;
-  border: 1px solid rgba(30, 27, 58, 0.08);
+  border: 1px solid rgba(183, 110, 121, 0.15);
   border-radius: 1rem;
   padding: 1.5rem;
+  box-shadow: 0 1px 0 rgba(183, 110, 121, 0.06);
+}
+
+/* Hero ornament: hand-drawn flute lines */
+.ornament-divider {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #B76E79;
+}
+
+.ornament-divider::before,
+.ornament-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(183, 110, 121, 0.45), transparent);
+  min-width: 2rem;
 }
