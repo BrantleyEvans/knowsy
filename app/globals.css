@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+@theme {
+  --color-knowsy-coral: #E85D5D;
+  --color-knowsy-coral-dark: #C94646;
+  --color-knowsy-plum: #1E1B3A;
+  --color-knowsy-plum-2: #2D2952;
+  --color-knowsy-cream: #FFF8F0;
+  --color-knowsy-peach: #FFE5D9;
+  --color-knowsy-gold: #FFC857;
+  --color-knowsy-ink: #1A1622;
+}
+
+html, body {
+  background: #FFF8F0;
+  color: #1A1622;
+}
+
+body {
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* Game surfaces (the dark, projected screens) */
+.game-surface {
+  background-color: #1E1B3A;
+  color: #FFF8F0;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.game-surface .accent {
+  color: #FFC857;
+}
+
+/* Tile in the 5x5 board */
+.game-tile {
+  background-color: #2D2952;
+  color: #FFF8F0;
+  border: 1px solid rgba(255, 248, 240, 0.08);
+  border-radius: 0.75rem;
+  transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-tile:not(.played):hover {
+  transform: translateY(-2px);
+  background-color: #E85D5D;
+  border-color: rgba(255, 248, 240, 0.25);
+  cursor: pointer;
+}
+
+.game-tile:not(.played):hover .tile-amount {
+  color: #FFF8F0;
+}
+
+.game-tile.played {
+  background-color: #1E1B3A;
+  color: transparent;
+  opacity: 0.32;
+  cursor: not-allowed;
+  border-color: rgba(255, 248, 240, 0.04);
+}
+
+.tile-amount {
+  color: #FFC857;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.category-header {
+  background: linear-gradient(180deg, #FFC857 0%, #E8AE3A 100%);
+  color: #1E1B3A;
+  border-radius: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+/* Form input shared style */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(30, 27, 58, 0.15);
+  background: white;
+  font-size: 1rem;
+  outline: none;
+  color: #1A1622;
+  transition: border-color 140ms, box-shadow 140ms;
+}
+
+.input:focus {
+  border-color: #E85D5D;
+  box-shadow: 0 0 0 3px rgba(232, 93, 93, 0.15);
+}
+
+textarea.input {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* CTA button */
+.btn-primary {
+  background-color: #E85D5D;
+  color: white;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.875rem 1.75rem;
+  transition: background-color 140ms, transform 140ms;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #C94646;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Card */
+.card {
+  background: white;
+  border: 1px solid rgba(30, 27, 58, 0.08);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
